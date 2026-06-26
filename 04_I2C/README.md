@@ -29,8 +29,8 @@ The communication between Master and Slave was verified through RTL simulation a
 
 ## Directory Structure
 
+```text
 04_I2C
-│
 ├── FPGA
 │   ├── I2C_MASTER
 │   │   ├── RTL
@@ -45,3 +45,4 @@ The communication between Master and Slave was verified through RTL simulation a
 │   └── tb
 │
 └── Images
+```
