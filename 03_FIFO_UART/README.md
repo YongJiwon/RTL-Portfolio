@@ -1,29 +1,27 @@
-# UART + FIFO RTL Design
+# UART + FIFO Verification using UVM
 
 ## Overview
 
-This project implements a UART communication system with dedicated RX FIFO and TX FIFO modules using Verilog HDL.
+This project implements and verifies a UART communication system with a FIFO buffer using Verilog/SystemVerilog and UVM.
 
-The objective of this project is to design and integrate UART Receiver, UART Transmitter, Baud Rate Generator, and FIFO modules to build a reliable serial communication system on FPGA.
-
-The design was verified through RTL simulation and FPGA hardware testing using a PC UART terminal (ComportMaster).
+The design integrates a UART Receiver, a single FIFO, and a UART Transmitter into one RTL design. Functional verification was performed through a UVM-based testbench, focusing on correct data transfer and FIFO behavior rather than FPGA hardware implementation.
 
 ---
 
 ## Features
 
-* UART Receiver
-* UART Transmitter
-* Baud Rate Generator
-* RX FIFO
-* TX FIFO
-* FIFO-based Data Buffering
-* Continuous Serial Communication
-* FPGA Hardware Verification
+- UART Receiver
+- UART Transmitter
+- Baud Rate Generator
+- Single FIFO Buffer
+- UART + FIFO Integration
+- UVM-based Verification
+- RTL Simulation
+- Waveform Analysis
 
 ---
 
-## Project Structure
+## Directory Structure
 
 ```text
 03_UART_FIFO
@@ -32,11 +30,10 @@ The design was verified through RTL simulation and FPGA hardware testing using a
 │   ├── uart_rx.v
 │   ├── uart_tx.v
 │   ├── fifo_sv.sv
-│   ├── uart_fifo_top.sv
+│   └── uart_fifo_top.sv
+├── UVM
+│   ├── tb_uart_fifo_top.sv
 │   └── ...
-├── TB
-│   ├── tb_fifo_sv.sv
-│   └── tb_uart_fifo_top.sv
 ├── Images
 └── Docs
 ```
@@ -46,25 +43,25 @@ The design was verified through RTL simulation and FPGA hardware testing using a
 ## System Architecture
 
 ```text
-          PC Terminal
-               │
-           UART RX
-               │
-        +--------------+
-        | UART Receiver|
-        +--------------+
-               │
-            RX FIFO
-               │
-            TX FIFO
-               │
-        +--------------+
-        | UART Transmitter |
-        +--------------+
-               │
-           UART TX
-               │
-          PC Terminal
+             UVM Testbench
+                    │
+                    ▼
+              +-----------+
+              | UART RX   |
+              +-----------+
+                    │
+                    ▼
+              +-----------+
+              |   FIFO    |
+              +-----------+
+                    │
+                    ▼
+              +-----------+
+              | UART TX   |
+              +-----------+
+                    │
+                    ▼
+          RTL Simulation Waveform
 ```
 
 ---
@@ -73,77 +70,115 @@ The design was verified through RTL simulation and FPGA hardware testing using a
 
 ### uart_rx.v
 
-* UART Receiver FSM
-* Serial-to-Parallel Conversion
-* Start/Stop Bit Detection
+Implements the UART Receiver.
 
-### uart_tx.v
+- Start bit detection
+- Serial-to-parallel conversion
+- Baud tick sampling
+- Receive FSM
 
-* UART Transmitter FSM
-* Parallel-to-Serial Conversion
-* Baud Tick Transmission
+---
 
 ### fifo_sv.sv
 
-* Circular Buffer
-* Write Pointer
-* Read Pointer
-* FIFO Full Detection
-* FIFO Empty Detection
+Implements a parameterized single FIFO buffer.
+
+Features include:
+
+- Circular Buffer
+- Write Pointer
+- Read Pointer
+- Full Detection
+- Empty Detection
+- FIFO Memory Control
+
+---
+
+### uart_tx.v
+
+Implements the UART Transmitter.
+
+- Parallel-to-serial conversion
+- Baud tick transmission
+- Stop bit generation
+- Transmit FSM
+
+---
 
 ### uart_fifo_top.sv
 
-* UART RX Integration
-* UART TX Integration
-* RX FIFO
-* TX FIFO
-* FIFO-based Data Flow
+Top-level module integrating
+
+- UART Receiver
+- FIFO
+- UART Transmitter
+
+into a complete UART communication path.
 
 ---
 
 ## Verification
 
-The design was verified through RTL simulation and FPGA hardware testing.
+Functional verification was performed using a SystemVerilog/UVM environment.
 
 Verification items include:
 
-* UART RX Operation
-* UART TX Operation
-* FIFO Write
-* FIFO Read
-* FIFO Full / Empty Status
-* Continuous Serial Data Transfer
+- UART RX operation
+- FIFO write operation
+- FIFO read operation
+- UART TX operation
+- FIFO Full / Empty behavior
+- End-to-end data transfer
 
-Hardware verification was performed using ComportMaster on Basys3 FPGA.
+Waveform analysis was used to verify correct RTL behavior.
+
+---
+
+## Verification Environment
+
+The verification environment consists of:
+
+- UVM Test
+- Sequence
+- Driver
+- Monitor
+- Scoreboard
+- DUT
+
+Stimulus is generated through UVM sequences, applied by the driver, observed by the monitor, and checked by the scoreboard.
 
 ---
 
 ## Skills
 
-* Verilog HDL
-* UART Protocol
-* FIFO Design
-* Circular Buffer
-* Finite State Machine (FSM)
-* FPGA RTL Design
-* Hardware Verification
+- Verilog HDL
+- SystemVerilog
+- UVM
+- UART Protocol
+- FIFO Design
+- RTL Design
+- RTL Verification
+- Waveform Debugging
 
 ---
 
 ## What I Learned
 
-Through this project, I gained practical experience in designing UART communication modules and integrating FIFO buffers into the data path.
+Through this project, I gained practical experience in designing and verifying UART communication hardware.
 
-Implementing independent RX and TX FIFOs improved my understanding of hardware buffering, UART timing, FSM design, and data flow management.
+I learned how FIFO buffering improves data flow between UART modules and how UVM can be used to build a reusable verification environment.
 
-This project strengthened my RTL design skills and served as a foundation for later communication projects involving UART and I2C.
+The project also strengthened my understanding of UART timing, FIFO control logic, RTL verification methodology, and waveform-based debugging.
 
 ---
 
 ## Future Improvements
 
-* Parameterized FIFO Depth
-* Configurable Baud Rate
-* Overflow / Underflow Protection
-* AXI4-Lite Interface Integration
-* Interrupt-based UART Communication
+Possible future improvements include:
+
+- Configurable FIFO depth
+- Assertion-Based Verification (SVA)
+- Functional Coverage
+- Randomized UVM Sequences
+- Overflow / Underflow verification
+- Error Injection Test Cases
