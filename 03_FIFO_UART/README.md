@@ -1,25 +1,25 @@
-# UART Loopback with FIFO Buffer
+# UART + FIFO RTL Design
 
 ## Overview
 
-This project implements a UART loopback system using Verilog.
+This project implements a UART communication system with dedicated RX FIFO and TX FIFO modules using Verilog HDL.
 
-Unlike a basic UART loopback, two FIFO buffers are inserted between the UART receiver and transmitter to decouple the receive and transmit paths, improving data handling during continuous communication.
+The objective of this project is to design and integrate UART Receiver, UART Transmitter, Baud Rate Generator, and FIFO modules to build a reliable serial communication system on FPGA.
 
-The design was verified on FPGA hardware by transmitting serial data from a PC and receiving the same data back through the UART interface.
+The design was verified through RTL simulation and FPGA hardware testing using a PC UART terminal (ComportMaster).
 
 ---
 
 ## Features
 
-- UART Receiver
-- UART Transmitter
-- Configurable Baud Rate Generator
-- RX FIFO
-- TX FIFO
-- UART Loopback
-- Continuous Serial Communication
-- FPGA Hardware Verification
+* UART Receiver
+* UART Transmitter
+* Baud Rate Generator
+* RX FIFO
+* TX FIFO
+* FIFO-based Data Buffering
+* Continuous Serial Communication
+* FPGA Hardware Verification
 
 ---
 
@@ -29,116 +29,121 @@ The design was verified on FPGA hardware by transmitting serial data from a PC a
 03_UART_FIFO
 ├── README.md
 ├── RTL
-│   ├── uart.v
-│   ├── fifo.v
-│   ├── uart_loopback.v
+│   ├── uart_rx.v
+│   ├── uart_tx.v
+│   ├── fifo_sv.sv
+│   ├── uart_fifo_top.sv
 │   └── ...
+├── TB
+│   ├── tb_fifo_sv.sv
+│   └── tb_uart_fifo_top.sv
 ├── Images
 └── Docs
 ```
 
 ---
 
-## Architecture
+## System Architecture
 
 ```text
-           PC Terminal
-                │
-             UART RX
-                │
-          +-------------+
-          | UART RX     |
-          +-------------+
-                │
+          PC Terminal
+               │
+           UART RX
+               │
+        +--------------+
+        | UART Receiver|
+        +--------------+
+               │
             RX FIFO
-                │
+               │
             TX FIFO
-                │
-          +-------------+
-          | UART TX     |
-          +-------------+
-                │
-             UART TX
-                │
-           PC Terminal
+               │
+        +--------------+
+        | UART Transmitter |
+        +--------------+
+               │
+           UART TX
+               │
+          PC Terminal
 ```
 
 ---
 
 ## Main Modules
 
-### uart.v
+### uart_rx.v
 
-Implements:
+* UART Receiver FSM
+* Serial-to-Parallel Conversion
+* Start/Stop Bit Detection
 
-- UART Receiver
-- UART Transmitter
-- Baud Tick Generator
+### uart_tx.v
 
-### fifo.v
+* UART Transmitter FSM
+* Parallel-to-Serial Conversion
+* Baud Tick Transmission
 
-Implements:
+### fifo_sv.sv
 
-- Parameterized FIFO
-- Push / Pop Control
-- Full Detection
-- Empty Detection
-- Circular Buffer
+* Circular Buffer
+* Write Pointer
+* Read Pointer
+* FIFO Full Detection
+* FIFO Empty Detection
 
-### uart_loopback.v
+### uart_fifo_top.sv
 
-Integrates:
-
-- UART
-- RX FIFO
-- TX FIFO
-
-and performs UART loopback communication.
+* UART RX Integration
+* UART TX Integration
+* RX FIFO
+* TX FIFO
+* FIFO-based Data Flow
 
 ---
 
 ## Verification
 
-The design was verified by transmitting serial data from a PC terminal.
+The design was verified through RTL simulation and FPGA hardware testing.
 
-Verification items included:
+Verification items include:
 
-- UART RX Operation
-- FIFO Push
-- FIFO Pop
-- UART TX Operation
-- Continuous Character Transmission
-- FIFO Full / Empty Behavior
+* UART RX Operation
+* UART TX Operation
+* FIFO Write
+* FIFO Read
+* FIFO Full / Empty Status
+* Continuous Serial Data Transfer
+
+Hardware verification was performed using ComportMaster on Basys3 FPGA.
 
 ---
 
 ## Skills
 
-- Verilog HDL
-- UART Protocol
-- FIFO Design
-- Circular Buffer
-- FPGA
-- RTL Design
-- Hardware Verification
+* Verilog HDL
+* UART Protocol
+* FIFO Design
+* Circular Buffer
+* Finite State Machine (FSM)
+* FPGA RTL Design
+* Hardware Verification
 
 ---
 
 ## What I Learned
 
-Through this project, I learned how FIFO buffers can decouple UART reception and transmission.
+Through this project, I gained practical experience in designing UART communication modules and integrating FIFO buffers into the data path.
 
-By separating the receive and transmit paths with independent FIFOs, continuous serial communication became more reliable and data flow management became simpler.
+Implementing independent RX and TX FIFOs improved my understanding of hardware buffering, UART timing, FSM design, and data flow management.
 
-This project also strengthened my understanding of UART timing, FIFO pointer control, and hardware-level debugging.
+This project strengthened my RTL design skills and served as a foundation for later communication projects involving UART and I2C.
 
 ---
 
 ## Future Improvements
 
-Possible future improvements include:
-
-- Configurable FIFO depth
-- Overflow and underflow protection
-- Interrupt-driven UART communication
-- AXI4-Lite interface integration
+* Parameterized FIFO Depth
+* Configurable Baud Rate
+* Overflow / Underflow Protection
+* AXI4-Lite Interface Integration
+* Interrupt-based UART Communication
