@@ -1,151 +1,197 @@
-# UART + FIFO Verification using UVM
+# UART + FIFO SystemVerilog Verification Environment
 
 ## Overview
 
-This project implements and verifies a UART communication system with a FIFO buffer using Verilog/SystemVerilog and UVM.
+This project implements and verifies a UART + FIFO RTL design using a custom SystemVerilog verification environment.
 
-The design integrates a UART Receiver, a single FIFO, and a UART Transmitter into one RTL design. Functional verification was performed through a UVM-based testbench, focusing on correct data transfer and FIFO behavior rather than FPGA hardware implementation.
+The purpose of this project was to understand the basic structure of functional verification before applying the UVM framework.  
+Instead of using the UVM library, the verification environment was built manually with Transaction, Generator, Driver, Monitor, Scoreboard, Environment, Mailbox, and Virtual Interface.
 
----
-
-## Features
-
-- UART Receiver
-- UART Transmitter
-- Baud Rate Generator
-- Single FIFO Buffer
-- UART + FIFO Integration
-- UVM-based Verification
-- RTL Simulation
-- Waveform Analysis
+The DUT consists of a UART Receiver, a single FIFO buffer, and a UART Transmitter.
 
 ---
 
-## Directory Structure
+## Design Architecture
 
 ```text
-03_UART_FIFO
-├── README.md
-├── RTL
-│   ├── uart_rx.v
-│   ├── uart_tx.v
-│   ├── fifo_sv.sv
-│   └── uart_fifo_top.sv
-├── UVM
-│   ├── tb_uart_fifo_top.sv
-│   └── ...
-├── Images
-└── Docs
+UART RX
+   ↓
+Single FIFO
+   ↓
+UART TX
 ```
+
+The FIFO is placed between UART RX and UART TX to buffer received data before transmission.
 
 ---
 
-## System Architecture
+## Verification Architecture
 
 ```text
-             UVM Testbench
-                    │
-                    ▼
-              +-----------+
-              | UART RX   |
-              +-----------+
-                    │
-                    ▼
-              +-----------+
-              |   FIFO    |
-              +-----------+
-                    │
-                    ▼
-              +-----------+
-              | UART TX   |
-              +-----------+
-                    │
-                    ▼
-          RTL Simulation Waveform
+Generator
+   ↓
+Driver
+   ↓
+DUT : UART RX → FIFO → UART TX
+   ↓
+Monitor
+   ↓
+Scoreboard
 ```
+
+The Generator creates UART byte transactions.  
+The Driver converts each byte into a UART serial frame and drives the DUT `rx` input.  
+The Monitor observes the DUT `tx` output and reconstructs the transmitted byte.  
+The Scoreboard compares expected data with actual received data.
 
 ---
 
-## Main Modules
+## Main RTL Modules
 
 ### uart_rx.v
 
-Implements the UART Receiver.
+Implements UART receive logic.
 
 - Start bit detection
+- Serial data sampling
 - Serial-to-parallel conversion
-- Baud tick sampling
-- Receive FSM
-
----
+- RX done signal generation
 
 ### fifo_sv.sv
 
-Implements a parameterized single FIFO buffer.
+Implements a single FIFO buffer.
 
-Features include:
-
-- Circular Buffer
-- Write Pointer
-- Read Pointer
-- Full Detection
-- Empty Detection
-- FIFO Memory Control
-
----
+- FIFO memory
+- Write pointer
+- Read pointer
+- Full detection
+- Empty detection
+- Push / Pop control
 
 ### uart_tx.v
 
-Implements the UART Transmitter.
+Implements UART transmit logic.
 
 - Parallel-to-serial conversion
-- Baud tick transmission
+- Start bit generation
+- Data bit transmission
 - Stop bit generation
-- Transmit FSM
-
----
+- TX busy control
 
 ### uart_fifo_top.sv
 
-Top-level module integrating
-
-- UART Receiver
-- FIFO
-- UART Transmitter
-
-into a complete UART communication path.
+Top-level module that connects UART RX, FIFO, and UART TX.
 
 ---
 
-## Verification
+## Verification Components
 
-Functional verification was performed using a SystemVerilog/UVM environment.
+### transaction
 
-Verification items include:
+Stores expected transmit data and actual received data.
 
-- UART RX operation
-- FIFO write operation
-- FIFO read operation
-- UART TX operation
-- FIFO Full / Empty behavior
-- End-to-end data transfer
+```systemverilog
+rand bit [7:0] tx_byte;
+     bit [7:0] rx_byte;
+```
 
-Waveform analysis was used to verify correct RTL behavior.
+### generator
+
+Creates test data.
+
+- Directed pattern test
+- Random byte test
+
+Directed patterns include:
+
+```text
+55, AA, F0, 0F, 00, FF
+```
+
+### driver
+
+Drives UART serial frames into the DUT `rx` line.
+
+UART frame format:
+
+```text
+Start bit(0) + 8 data bits(LSB first) + Stop bit(1)
+```
+
+### monitor
+
+Observes the DUT `tx` line and reconstructs UART bytes.
+
+- Detects start bit
+- Samples data bits
+- Checks stop bit
+
+### scoreboard
+
+Compares expected bytes and actual bytes.
+
+- Expected data queue
+- Pass count
+- Fail count
+- Total transaction count
+
+### environment
+
+Connects all verification components using mailboxes and a virtual interface.
 
 ---
 
-## Verification Environment
+## Test Scenario
 
-The verification environment consists of:
+The testbench supports both directed and random tests.
 
-- UVM Test
-- Sequence
-- Driver
-- Monitor
-- Scoreboard
-- DUT
+### Directed Test
 
-Stimulus is generated through UVM sequences, applied by the driver, observed by the monitor, and checked by the scoreboard.
+Uses fixed byte patterns to verify bit-level UART behavior.
+
+```text
+0x55, 0xAA, 0xF0, 0x0F, 0x00, 0xFF
+```
+
+### Random Test
+
+Runs random UART byte transactions.
+
+```systemverilog
+run_count = 1000;
+gen.run_random(run_count);
+drv.run(run_count);
+```
+
+The scoreboard waits until all generated transactions are checked.
+
+---
+
+## Verification Result
+
+The verification environment checks whether data transmitted into the DUT through `rx` is correctly returned through `tx` after passing through UART RX, FIFO, and UART TX.
+
+At the end of simulation, the scoreboard reports:
+
+```text
+total
+pass
+fail
+```
+
+This confirms end-to-end data consistency through the UART + FIFO datapath.
+
+---
+
+## Key Points
+
+- Built a custom SystemVerilog verification environment before learning UVM
+- Implemented transaction-based stimulus generation
+- Used mailbox-based communication between verification components
+- Used a virtual interface to connect class-based verification components with RTL signals
+- Verified UART frame generation and reconstruction
+- Verified FIFO-based data buffering
+- Checked actual output data using a scoreboard
 
 ---
 
@@ -153,32 +199,42 @@ Stimulus is generated through UVM sequences, applied by the driver, observed by 
 
 - Verilog HDL
 - SystemVerilog
-- UVM
+- Class-based Testbench
+- Transaction Modeling
+- Mailbox Communication
+- Virtual Interface
 - UART Protocol
 - FIFO Design
-- RTL Design
-- RTL Verification
+- Scoreboard-based Verification
+- RTL Simulation
 - Waveform Debugging
 
 ---
 
 ## What I Learned
 
-Through this project, I gained practical experience in designing and verifying UART communication hardware.
+Through this project, I learned the basic structure of functional verification by building a verification environment manually.
 
-I learned how FIFO buffering improves data flow between UART modules and how UVM can be used to build a reusable verification environment.
+Before applying the UVM framework, I implemented the core verification concepts myself:
 
-The project also strengthened my understanding of UART timing, FIFO control logic, RTL verification methodology, and waveform-based debugging.
+- Transaction
+- Generator
+- Driver
+- Monitor
+- Scoreboard
+- Environment
+
+This helped me understand how verification components exchange data, how expected and actual results are compared, and how a reusable verification structure is organized.
+
+This project became the foundation for later UVM-based verification work.
 
 ---
 
 ## Future Improvements
 
-Possible future improvements include:
-
-- Configurable FIFO depth
-- Assertion-Based Verification (SVA)
-- Functional Coverage
-- Randomized UVM Sequences
-- Overflow / Underflow verification
-- Error Injection Test Cases
+- Convert the custom verification environment into a standard UVM structure
+- Add functional coverage
+- Add SystemVerilog Assertions
+- Add overflow / underflow test cases
+- Add randomized frame timing
+- Add parity/error injection scenarios
