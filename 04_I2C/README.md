@@ -51,7 +51,7 @@ The communication between Master and Slave was verified through RTL simulation a
 
 During FPGA-to-FPGA hardware testing between the I2C Master and Slave boards, the same data was sometimes received correctly, while in other cases the entire received data sequence was consistently shifted by one bit.
 
-Because the transmitted data itself was valid and the error appeared as a consistent bit shift rather than random data corruption or loss, the issue was identified as a timing and synchronization problem between clock domains (CDC).
+Because the transmitted data itself was valid and the error appeared as a consistent bit shift rather than random data corruption or loss, the issue was suspected to be related to timing and synchronization between clock domains (CDC).
 
 This hardware test highlighted the importance of proper clock-domain synchronization and stable sampling timing when interfacing communication modules implemented with different timing domains.
 
