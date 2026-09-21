@@ -47,21 +47,73 @@ The communication between Master and Slave was verified through RTL simulation a
 └── Images
 ```
 
+# I2C Communication System
+
+## Overview
+
+This project implements an FPGA-based I2C communication system using SystemVerilog.
+
+The project consists of
+
+* I2C Master
+* I2C Slave
+* UART Interface
+* UVM Verification Environment
+
+The communication between Master and Slave was verified through RTL simulation and UVM testbench.
+
+---
+
+## Features
+
+* I2C Master RTL
+* I2C Slave RTL
+* UART Interface
+* FPGA Top Module
+* UVM Verification
+* Functional Coverage
+* Constraint Files
+
+---
+
+## Directory Structure
+
+```text
+04_I2C
+├── FPGA
+│   ├── I2C_MASTER
+│   │   ├── RTL
+│   │   └── xdc
+│   │
+│   └── I2C_SLAVE
+│       ├── RTL
+│       └── xdc
+│
+├── UVM
+│   ├── rtl
+│   └── tb
+│
+└── Images
+```
+
 ## Limitations
 
-The current implementation directly bridges the UART and I2C interfaces without an intermediate buffer.
+During FPGA-to-FPGA hardware testing between the I2C Master and Slave boards, short messages were transmitted correctly.
 
-During hardware testing, short messages were transmitted successfully. However, long or continuous data streams occasionally experienced data loss due to the processing speed difference between the UART and I2C interfaces.
+However, during longer or continuous transfers, the received data occasionally appeared shifted by one bit. Waveform analysis showed that the issue was related to a one-clock timing misalignment, which caused the SDA sampling point to shift.
 
-This limitation was observed during FPGA-to-FPGA communication between the I2C Master and Slave boards.
+This hardware test highlighted the importance of correctly aligning SCL transitions, SDA timing, and the data sampling point in an RTL-based I2C implementation.
 
 ## Future Improvements
 
-To improve communication reliability, a FIFO buffer can be inserted between the UART and I2C modules.
+The I2C timing logic can be further refined by reviewing the relationship between SCL transitions and SDA sampling timing in both simulation and FPGA hardware.
+
+For continuous UART-to-I2C communication, an intermediate FIFO can also be added to buffer incoming UART data while the I2C interface is busy.
 
 Expected improvements include:
 
-- Preventing data loss during continuous transmission
-- Buffering UART input while the I2C bus is busy
-- Improving throughput between UART and I2C interfaces
-- Supporting longer data packets with higher reliability
+* Correcting the SDA sampling timing
+* Improving timing stability during continuous transfers
+* Buffering UART input while the I2C interface is busy
+* Supporting longer and continuous data transfers more reliably
+
